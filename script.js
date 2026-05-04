@@ -100,16 +100,47 @@ function withdraw(){
 
 // TRANSFER 💸
 function transfer(){
-  let toUser = document.getElementById("transferTo").value;
+  let toUser = document.getElementById("transferTo").value.trim();
   let amount = Number(document.getElementById("transferAmount").value);
 
   let users = getUsers();
 
-  if(!users[toUser]) return alert("User not found");
-  if(amount <= 0) return;
+  // 🔥 normalize usernames (VERY IMPORTANT)
+  let sender = currentUser;
 
-  if(users[currentUser].balance < amount){
+  if(!toUser || !amount){
+    return alert("Fill all fields");
+  }
+
+  if(!users[toUser]){
+    return alert("Recipient user not found");
+  }
+
+  if(users[sender].balance < amount){
     return alert("Insufficient balance");
+  }
+
+  // 💸 deduct sender
+  users[sender].balance -= amount;
+
+  // 💰 credit receiver
+  users[toUser].balance += amount;
+
+  // 🧾 logs
+  if(!users[sender].history) users[sender].history = [];
+  if(!users[toUser].history) users[toUser].history = [];
+
+  users[sender].history.push(`Sent ₦${amount} to ${toUser}`);
+  users[toUser].history.push(`Received ₦${amount} from ${sender}`);
+
+  // 💾 SAVE FIRST (very important)
+  saveUsers(users);
+
+  // 🔄 refresh UI
+  updateUI();
+
+  alert("Transfer successful");
+}
   }
 
   // deduct sender
