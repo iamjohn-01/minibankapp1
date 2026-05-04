@@ -1,23 +1,35 @@
-let balance = 0;
-
-function login() {
-  let user = document.getElementById("user").value;
-  let pass = document.getElementById("pass").value;
-
-  if(user && pass) {
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("dashboard").style.display = "block";
-  } else {
-    alert("Enter login details");
-  }
+body {
+  font-family: Arial;
+  background: linear-gradient(135deg, #0f172a, #1e3a8a);
+  color: white;
+  text-align: center;
+  padding-top: 60px;
 }
 
-function addMoney() {
-  balance += 10000;
-  document.getElementById("balance").innerText = "₦" + balance;
+.container, .dashboard {
+  background: rgba(255,255,255,0.1);
+  padding: 25px;
+  width: 320px;
+  margin: auto;
+  border-radius: 15px;
 }
 
-function logout() {
-  document.getElementById("dashboard").style.display = "none";
-  document.getElementById("loginBox").style.display = "block";
+input {
+  width: 90%;
+  padding: 10px;
+  margin: 8px 0;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+.card {
+  background: rgba(0,0,0,0.3);
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 10px;
 }
