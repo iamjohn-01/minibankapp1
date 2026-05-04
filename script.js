@@ -181,3 +181,4 @@ function logout(){
   document.getElementById("dashboard").style.display = "none";
   document.getElementById("loginBox").style.display = "block";
 }
+currentUser = user.trim();
