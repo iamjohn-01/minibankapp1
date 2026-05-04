@@ -1,14 +1,22 @@
 let currentUser = null;
 
-// SHOW PAGES
-function showCreate(){
-  document.getElementById("loginBox").style.display = "none";
-  document.getElementById("createBox").style.display = "block";
+// LOAD USERS
+function getUsers(){
+  return JSON.parse(localStorage.getItem("users")) || {};
 }
 
-function showLogin(){
-  document.getElementById("createBox").style.display = "none";
-  document.getElementById("loginBox").style.display = "block";
+function saveUsers(users){
+  localStorage.setItem("users", JSON.stringify(users));
+}
+
+// SHOW BALANCE + HISTORY
+function updateUI(){
+  let users = getUsers();
+
+  document.getElementById("balance").innerText =
+    "₦" + users[currentUser].balance;
+
+  renderHistory(users[currentUser].history || []);
 }
 
 // CREATE ACCOUNT
@@ -16,26 +24,18 @@ function createAccount(){
   let user = document.getElementById("newUser").value;
   let pass = document.getElementById("newPass").value;
 
-  if(!user || !pass){
-    alert("Fill all fields");
-    return;
-  }
+  let users = getUsers();
 
-  let users = JSON.parse(localStorage.getItem("users")) || {};
-
-  if(users[user]){
-    alert("User already exists");
-    return;
-  }
+  if(users[user]) return alert("User exists");
 
   users[user] = {
     password: pass,
-    balance: 0
+    balance: 0,
+    history: []
   };
 
-  localStorage.setItem("users", JSON.stringify(users));
-
-  alert("Account created!");
+  saveUsers(users);
+  alert("Account created");
   showLogin();
 }
 
@@ -44,7 +44,7 @@ function login(){
   let user = document.getElementById("loginUser").value;
   let pass = document.getElementById("loginPass").value;
 
-  let users = JSON.parse(localStorage.getItem("users")) || {};
+  let users = getUsers();
 
   if(users[user] && users[user].password === pass){
     currentUser = user;
@@ -54,47 +54,93 @@ function login(){
 
     document.getElementById("currentUser").innerText = user;
 
-    updateBalance();
+    updateUI();
   } else {
     alert("Invalid login");
   }
 }
 
-// UPDATE BALANCE DISPLAY
-function updateBalance(){
-  let users = JSON.parse(localStorage.getItem("users"));
-  document.getElementById("balance").innerText =
-    "₦" + users[currentUser].balance;
-}
-
 // DEPOSIT
 function deposit(){
   let amount = Number(document.getElementById("amount").value);
-  if(amount <= 0) return;
+  let users = getUsers();
 
-  let users = JSON.parse(localStorage.getItem("users"));
+  if(amount <= 0) return;
 
   users[currentUser].balance += amount;
 
-  localStorage.setItem("users", JSON.stringify(users));
+  users[currentUser].history.push(
+    `Deposited ₦${amount}`
+  );
 
-  updateBalance();
+  saveUsers(users);
+  updateUI();
 }
 
 // WITHDRAW
 function withdraw(){
   let amount = Number(document.getElementById("amount").value);
-  let users = JSON.parse(localStorage.getItem("users"));
+  let users = getUsers();
 
   if(amount <= 0) return;
 
   if(users[currentUser].balance >= amount){
     users[currentUser].balance -= amount;
-    localStorage.setItem("users", JSON.stringify(users));
-    updateBalance();
+
+    users[currentUser].history.push(
+      `Withdrew ₦${amount}`
+    );
+
+    saveUsers(users);
+    updateUI();
   } else {
     alert("Insufficient funds");
   }
+}
+
+// TRANSFER 💸
+function transfer(){
+  let toUser = document.getElementById("transferTo").value;
+  let amount = Number(document.getElementById("transferAmount").value);
+
+  let users = getUsers();
+
+  if(!users[toUser]) return alert("User not found");
+  if(amount <= 0) return;
+
+  if(users[currentUser].balance < amount){
+    return alert("Insufficient balance");
+  }
+
+  // deduct sender
+  users[currentUser].balance -= amount;
+
+  // add receiver
+  users[toUser].balance += amount;
+
+  // history logs
+  users[currentUser].history.push(
+    `Sent ₦${amount} to ${toUser}`
+  );
+
+  users[toUser].history.push(
+    `Received ₦${amount} from ${currentUser}`
+  );
+
+  saveUsers(users);
+  updateUI();
+}
+
+// RENDER HISTORY
+function renderHistory(history){
+  let box = document.getElementById("historyBox");
+  box.innerHTML = "";
+
+  history.slice().reverse().forEach(item => {
+    let div = document.createElement("div");
+    div.innerText = item;
+    box.appendChild(div);
+  });
 }
 
 // LOGOUT
